@@ -753,14 +753,15 @@
         let gamesLibrary = [];
         let activeObjectUrl = null;
         const defaultDeck = [
-            {id:'def_1',name:'Football Bros',file:'football_bros.html',icon:'🏈'},
-            {id:'def_2',name:'Basketball Bros',file:'basketball_bros.html',icon:'🏀'},
-            {id:'def_3',name:'Soccer Bros',file:'soccer_bros.html',icon:'⚽'},
-            {id:'def_4',name:'Baseball Bros',file:'baseball_bros.html',icon:'⚾'},
+            {id:'def_1',name:'Football Bros',file:'football-bros.html',icon:'🏈'},
+            {id:'def_2',name:'Basketball Bros',file:'basket-bros.html',icon:'🏀'},
+            {id:'def_3',name:'Soccer Bros',file:'soccer-bros.html',icon:'⚽'},
+            {id:'def_4',name:'Baseball Bros',file:'baseball-bros.html',icon:'⚾'},
             {id:'def_5',name:'Retro Bowl',file:'retro_bowl.html',icon:'🏈'},
             {id:'def_6',name:'Retro Bowl College',file:'retro_bowl_college.html',icon:'🏈'},
             {id:'def_7',name:'Adventure Capitalist',file:'adventure_capitalist.html',icon:'💰'},
             {id:'def_8',name:'Super Liquid Soccer',file:'super_liquid_soccer.html',icon:'⚽'},
+            {id:'def_18',name:'Slope',file:'slope.html',icon:'🟢'},
             {id:'def_9',name:'Slope 2',file:'slope-2-player.html',icon:'🟢'},
             {id:'def_11',name:'Basket Random',file:'basket-random.html',icon:'🏀'},
             {id:'def_12',name:'Boxing Random',file:'boxing-random.htm',icon:'🥊'},
@@ -792,7 +793,7 @@
         }
         window.addEventListener('DOMContentLoaded', async () => {
             applyCustomization(); setTheme(localStorage.getItem(THEME_KEY)||'cyan',false);
-            try { const saved=await readLibrary(); gamesLibrary=Array.isArray(saved)?saved.map(g=>{const base=defaultDeck.find(d=>d.id===g.id);return base?{...base,...g,file:base.file}:g;}):defaultDeck.map(g=>({...g})); gamesLibrary=gamesLibrary.filter(g=>g.file!=='slope-3.html'); if(!saved) await writeLibrary(gamesLibrary); if(saved&&!localStorage.getItem('gamehub_super_liquid_seeded')){if(!gamesLibrary.some(g=>g.id==='def_8'))gamesLibrary.push({...defaultDeck.find(g=>g.id==='def_8')});await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_super_liquid_seeded','1');} if(saved&&!localStorage.getItem('gamehub_supplied_games_seeded_v1')){defaultDeck.filter(g=>Number(g.id.slice(4))>=9).forEach(base=>{if(!gamesLibrary.some(g=>g.id===base.id||g.name===base.name))gamesLibrary.push({...base});});await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_supplied_games_seeded_v1','1');} }
+            try { const saved=await readLibrary(); gamesLibrary=Array.isArray(saved)?saved.map(g=>{const base=defaultDeck.find(d=>d.id===g.id);return base?{...base,...g,file:base.file}:g;}):defaultDeck.map(g=>({...g})); gamesLibrary=gamesLibrary.filter(g=>g.file!=='slope-3.html'); if(!saved) await writeLibrary(gamesLibrary); if(saved&&!localStorage.getItem('gamehub_super_liquid_seeded')){if(!gamesLibrary.some(g=>g.id==='def_8'))gamesLibrary.push({...defaultDeck.find(g=>g.id==='def_8')});await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_super_liquid_seeded','1');} if(saved&&!localStorage.getItem('gamehub_supplied_games_seeded_v1')){defaultDeck.filter(g=>Number(g.id.slice(4))>=9&&g.id!=='def_18').forEach(base=>{if(!gamesLibrary.some(g=>g.id===base.id||g.name===base.name))gamesLibrary.push({...base});});await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_supplied_games_seeded_v1','1');} if(saved&&!localStorage.getItem('gamehub_original_slope_seeded_v1')){const slope=defaultDeck.find(g=>g.id==='def_18');if(!gamesLibrary.some(g=>g.id===slope.id||g.name===slope.name))gamesLibrary.push({...slope});await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_original_slope_seeded_v1','1');} }
             catch(error) { gamesLibrary=defaultDeck.map(g=>({...g})); alert('Offline save storage is unavailable in this browser: '+error.message); }
             renderGameList(); showEntryLegal();
         });
