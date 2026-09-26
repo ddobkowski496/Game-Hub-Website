@@ -569,6 +569,17 @@
         .suggestions-tab { font-size:.7rem; white-space:nowrap; }
         .suggestions-list { max-height:55vh; overflow:auto; display:flex; flex-direction:column; gap:7px; }
         .suggestion-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:7px; border-bottom:1px solid var(--bg-card); }
+        .dev-modal-content { width:95vw; height:95vh; max-height:95vh; padding:16px; gap:10px; }
+        .dev-page-tabs { display:flex; gap:8px; flex-shrink:0; }
+        .dev-page-tab.active { color:var(--accent); border-color:var(--accent); }
+        .dev-page { min-height:0; flex:1; overflow-y:auto; overscroll-behavior:contain; padding-right:5px; }
+        .dev-page[hidden] { display:none; }
+        .dev-page .selection-list { max-height:34vh; }
+        .dev-page .suggestions-list { max-height:50vh; }
+        .viewer-suggestion-form { display:grid; gap:8px; }
+        .viewer-suggestion-form textarea { width:100%; min-height:95px; resize:vertical; padding:9px; background:var(--bg-primary); color:var(--text-main); border:1px solid var(--accent); font:inherit; }
+        .viewer-submissions { max-height:18vh; overflow:auto; }
+        .viewer-submission { padding:6px; border-bottom:1px solid var(--bg-card); font-size:.75rem; overflow-wrap:anywhere; }
         .legal-modal { z-index:500; }
         .legal-content { width:min(760px,94vw); max-height:92vh; overflow:auto; }
         .legal-tabs { display:flex; gap:8px; margin:10px 0; }
@@ -680,19 +691,25 @@
     </div>
 
     <div id="selection-modal" class="modal">
-        <div class="modal-content" style="width:min(620px,94vw);">
-            <div class="modal-title">Game Selection</div>
-            <div class="file-note">Developer mode is active. Pause access or permanently remove a title.</div>
-            <div id="selection-list" class="selection-list"></div>
-            <div class="menu-title">Suggested Games</div>
-            <div class="file-note">Choose Add to enter a suggested title into the game setup. Its HTML file must already exist in this repository.</div>
-            <div id="developer-suggestions-list" class="suggestions-list"></div>
-            <div class="menu-title">Change DEV TOOLS Password</div>
-            <input type="password" id="new-dev-password" class="modal-input" placeholder="NEW PASSWORD">
-            <input type="password" id="confirm-dev-password" class="modal-input" placeholder="CONFIRM NEW PASSWORD">
-            <div class="file-note">This password is saved in this browser. The initial password is 071812.</div>
-            <div class="modal-actions"><button class="modal-btn modal-confirm" onclick="changeDevPassword()">Save Password</button></div>
-            <div class="modal-actions"><button class="modal-btn" onclick="closeSelection()">Done</button><button class="modal-btn modal-confirm" onclick="openModal('details-modal')">Add HTML Game</button></div>
+        <div class="modal-content dev-modal-content">
+            <div class="modal-title">Developer Tools</div>
+            <div class="dev-page-tabs"><button id="dev-tab-1" class="modal-btn dev-page-tab active" onclick="setDevPage(1)">1 · Games</button><button id="dev-tab-2" class="modal-btn dev-page-tab" onclick="setDevPage(2)">2 · Suggestions & Security</button></div>
+            <section id="dev-page-1" class="dev-page">
+                <div class="file-note">Manage games in the library. Paused games are hidden from players.</div>
+                <div id="selection-list" class="selection-list"></div>
+                <div class="modal-actions"><button class="modal-btn modal-confirm" onclick="openModal('details-modal')">Add HTML Game</button></div>
+            </section>
+            <section id="dev-page-2" class="dev-page" hidden>
+                <div class="menu-title">Suggested Games</div>
+                <div class="file-note">Add a title after its HTML file is present in this repository.</div>
+                <div id="developer-suggestions-list" class="suggestions-list"></div>
+                <div class="menu-title">Change DEV TOOLS Password</div>
+                <input type="password" id="new-dev-password" class="modal-input" placeholder="NEW PASSWORD">
+                <input type="password" id="confirm-dev-password" class="modal-input" placeholder="CONFIRM NEW PASSWORD">
+                <div class="file-note">This password is saved in this browser. The initial password is 071812.</div>
+                <div class="modal-actions"><button class="modal-btn modal-confirm" onclick="changeDevPassword()">Save Password</button></div>
+            </section>
+            <div class="modal-actions"><button class="modal-btn" onclick="closeSelection()">Done</button><button class="modal-btn" onclick="setDevPage(1)">Back</button><button class="modal-btn modal-confirm" onclick="setDevPage(2)">Next</button></div>
         </div>
     </div>
 
@@ -726,7 +743,7 @@
         <div class="modal-actions"><button id="legal-continue" class="modal-btn modal-confirm" onclick="acceptLegalTerms()" disabled>Continue</button></div>
       </div>
     </div>
-    <div id="suggestions-modal" class="modal"><div class="modal-content" style="width:min(600px,94vw);"><div class="modal-title">Game Suggestions</div><div class="file-note">Ideas for games that players would like to see added to the hub.</div><div id="player-suggestions-list" class="suggestions-list"></div><div class="modal-actions"><button class="modal-btn" onclick="closeModal('suggestions-modal')">Close</button></div></div></div>
+    <div id="suggestions-modal" class="modal"><div class="modal-content" style="width:min(600px,94vw);"><div class="modal-title">Game Suggestions</div><div class="file-note">Suggest a game for the hub. This offline form saves suggestions only in this browser; it does not send them to the site owner.</div><form class="viewer-suggestion-form" onsubmit="submitViewerSuggestion(event)"><textarea id="viewer-suggestion-input" maxlength="300" placeholder="What game should we add?"></textarea><button class="modal-btn modal-confirm" type="submit">Submit Suggestion</button></form><div id="viewer-submissions" class="viewer-submissions"></div><div class="modal-actions"><button class="modal-btn" onclick="closeModal('suggestions-modal')">Close</button></div></div></div>
 
     <script>
         const STORAGE_KEY = 'gamehub_offline_library_v2';
@@ -777,7 +794,9 @@
         function toggleCopyright(){const notice=document.getElementById('copyright-notice'),button=document.getElementById('copyright-toggle'),expanded=button.getAttribute('aria-expanded')==='true';notice.hidden=expanded;button.setAttribute('aria-expanded',String(!expanded));button.textContent=expanded?'▸':'▾';button.setAttribute('aria-label',expanded?'Expand copyright notice':'Collapse copyright notice');}
         const suggestedGames=[['Hockey Bros','🏒'],['Tennis Bros','🎾'],['Golf Orbit','⛳'],['Retro Goal','⚽'],['Tiny Fishing','🎣'],['Moto X3M','🏍️'],['Drift Boss','🏎️'],['1v1.LOL','🎮'],['Slope','🟢'],['Slope 2','🟢'],['Slope 3','🟢'],['Basket Random','🏀'],['Volley Random','🏐'],['Boxing Random','🥊'],['Soccer Random','⚽']];
         function openPlayerSuggestions(){renderPlayerSuggestions();openModal('suggestions-modal');}
-        function renderPlayerSuggestions(){const list=document.getElementById('player-suggestions-list');list.replaceChildren();suggestedGames.forEach(([name,icon])=>{const row=document.createElement('div');row.className='suggestion-row';const label=document.createElement('span');label.textContent=icon+' '+name;row.append(label);list.append(row);});}
+        function setDevPage(page){const second=page===2;document.getElementById('dev-page-1').hidden=second;document.getElementById('dev-page-2').hidden=!second;document.getElementById('dev-tab-1').classList.toggle('active',!second);document.getElementById('dev-tab-2').classList.toggle('active',second);document.getElementById('selection-modal').querySelector('.dev-modal-content').scrollTop=0;}
+        function renderPlayerSuggestions(){const list=document.getElementById('viewer-submissions');list.replaceChildren();let entries=[];try{entries=JSON.parse(localStorage.getItem('gamehub_viewer_suggestions')||'[]');}catch{}entries.forEach(text=>{const row=document.createElement('div');row.className='viewer-submission';row.textContent=text;list.append(row);});}
+        function submitViewerSuggestion(event){event.preventDefault();const input=document.getElementById('viewer-suggestion-input'),value=input.value.trim();if(!value)return;let entries=[];try{entries=JSON.parse(localStorage.getItem('gamehub_viewer_suggestions')||'[]');}catch{}entries.unshift(value);entries=entries.slice(0,50);localStorage.setItem('gamehub_viewer_suggestions',JSON.stringify(entries));input.value='';renderPlayerSuggestions();alert('Suggestion saved on this device. It has not been sent to the site owner.');}
         function renderDeveloperSuggestions(){const list=document.getElementById('developer-suggestions-list');list.replaceChildren();suggestedGames.forEach(([name,icon])=>{const row=document.createElement('div');row.className='suggestion-row';const label=document.createElement('span');label.textContent=icon+' '+name;const button=document.createElement('button');button.className='modal-btn modal-confirm';button.textContent='Add';button.onclick=()=>{document.getElementById('game-name-input').value=name;document.getElementById('game-icon-input').value=icon;document.getElementById('game-path-input').value='';openModal('details-modal');};row.append(label,button);list.append(row);});}
         function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
         function toggleFullscreen(){const box=document.getElementById('viewport-container');if(!document.fullscreenElement)box.requestFullscreen?.().catch(()=>{});else document.exitFullscreen?.();}
@@ -795,7 +814,7 @@
         function verifyPassword(){if(document.getElementById('password-input').value===(localStorage.getItem(DEV_PASSWORD_KEY)||DEFAULT_DEV_PASSWORD)){closeModal('password-modal');document.body.classList.add('dev-mode');renderSelection();setTimeout(()=>openModal('selection-modal'),150);}else{alert('Access code is incorrect.');closeModal('password-modal');}}
         function changeDevPassword(){const next=document.getElementById('new-dev-password').value,confirmValue=document.getElementById('confirm-dev-password').value;if(next.length<4){alert('Use a password with at least 4 characters.');return;}if(next!==confirmValue){alert('The passwords do not match.');return;}localStorage.setItem(DEV_PASSWORD_KEY,next);document.getElementById('new-dev-password').value='';document.getElementById('confirm-dev-password').value='';alert('DEV TOOLS password changed.');}
         function closeSelection(){closeModal('selection-modal');closeModal('details-modal');document.body.classList.remove('dev-mode');}
-        function renderSelection(){renderDeveloperSuggestions();const list=document.getElementById('selection-list');list.innerHTML='';gamesLibrary.forEach(g=>{const row=document.createElement('div');row.className='selection-row';const label=document.createElement('span');label.textContent=(g.icon||'🎮')+' '+g.name+(g.file?' — '+g.file:'')+(g.paused?' (Paused)':'');const pause=document.createElement('button');pause.textContent=g.paused?'Resume':'Pause';pause.onclick=()=>{g.paused=!g.paused;if(g.paused&&g.id===document.getElementById('game-frame').dataset.activeId)stopCurrentGame();persistAndRender();};const remove=document.createElement('button');remove.textContent='Remove';remove.className='remove-game';remove.onclick=()=>{if(confirm('Permanently remove '+g.name+'?')){if(g.id===document.getElementById('game-frame').dataset.activeId)stopCurrentGame();gamesLibrary=gamesLibrary.filter(x=>x.id!==g.id);persistAndRender();}};row.append(label,pause,remove);list.append(row);});}
+        function renderSelection(){setDevPage(1);renderDeveloperSuggestions();const list=document.getElementById('selection-list');list.innerHTML='';gamesLibrary.forEach(g=>{const row=document.createElement('div');row.className='selection-row';const label=document.createElement('span');label.textContent=(g.icon||'🎮')+' '+g.name+(g.file?' — '+g.file:'')+(g.paused?' (Paused)':'');const pause=document.createElement('button');pause.textContent=g.paused?'Resume':'Pause';pause.onclick=()=>{g.paused=!g.paused;if(g.paused&&g.id===document.getElementById('game-frame').dataset.activeId)stopCurrentGame();persistAndRender();};const remove=document.createElement('button');remove.textContent='Remove';remove.className='remove-game';remove.onclick=()=>{if(confirm('Permanently remove '+g.name+'?')){if(g.id===document.getElementById('game-frame').dataset.activeId)stopCurrentGame();gamesLibrary=gamesLibrary.filter(x=>x.id!==g.id);persistAndRender();}};row.append(label,pause,remove);list.append(row);});}
         async function saveNewGame(){const name=document.getElementById('game-name-input').value.trim(),path=document.getElementById('game-path-input').value.trim(),icon=document.getElementById('game-icon-input').value.trim()||iconFor(name);if(!name||!path){alert('Enter a title and repository HTML filename.');return;}if(!/\.html?$/i.test(path)||/^(?:[a-z]+:)?\/\//i.test(path)||path.startsWith('/')||path.split(/[\\/]/).includes('..')){alert('Enter a relative .html or .htm file path inside this repository.');return;}try{const item={id:'user_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),name,icon,file:path,paused:false};gamesLibrary.push(item);await writeLibrary(gamesLibrary);renderGameList();renderSelection();document.getElementById('game-name-input').value='';document.getElementById('game-icon-input').value='';document.getElementById('game-path-input').value='';closeModal('details-modal');}catch(err){alert('Could not save this game: '+err.message);}}
         function iconFor(name){const n=name.toLowerCase();if(n.includes('retro bowl')||n.includes('football'))return '🏈';if(n.includes('basket'))return '🏀';if(n.includes('soccer'))return '⚽';if(n.includes('baseball'))return '⚾';if(n.includes('capitalist'))return '💰';return '🎮';}
         async function persistAndRender(){try{await writeLibrary(gamesLibrary);renderGameList();renderSelection();}catch(e){alert('Could not save library: '+e.message);}}
