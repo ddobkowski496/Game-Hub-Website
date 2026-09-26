@@ -687,7 +687,8 @@
             {id:'def_4',name:'Baseball Bros',file:'baseball_bros.html',icon:'⚾'},
             {id:'def_5',name:'Retro Bowl',file:'retro_bowl.html',icon:'🏈'},
             {id:'def_6',name:'Retro Bowl College',file:'retro_bowl_college.html',icon:'🏈'},
-            {id:'def_7',name:'Adventure Capitalist',file:'adventure_capitalist.html',icon:'💰'}
+            {id:'def_7',name:'Adventure Capitalist',file:'adventure_capitalist.html',icon:'💰'},
+            {id:'def_8',name:'Super Liquid Soccer',file:'super_liquid_soccer.html',icon:'⚽'}
         ];
         const STORE = 'library';
         let dbPromise;
@@ -711,7 +712,7 @@
         }
         window.addEventListener('DOMContentLoaded', async () => {
             applyCustomization(); setTheme(localStorage.getItem(THEME_KEY)||'cyan',false);
-            try { const saved=await readLibrary(); gamesLibrary=Array.isArray(saved)?saved.map(g=>{const base=defaultDeck.find(d=>d.id===g.id);return base?{...base,...g,file:base.file}:g;}):defaultDeck.map(g=>({...g})); if(!saved) await writeLibrary(gamesLibrary); }
+            try { const saved=await readLibrary(); gamesLibrary=Array.isArray(saved)?saved.map(g=>{const base=defaultDeck.find(d=>d.id===g.id);return base?{...base,...g,file:base.file}:g;}):defaultDeck.map(g=>({...g})); if(!saved) await writeLibrary(gamesLibrary); if(saved&&!localStorage.getItem('gamehub_super_liquid_seeded')){if(!gamesLibrary.some(g=>g.id==='def_8'))gamesLibrary.push({...defaultDeck.find(g=>g.id==='def_8')});await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_super_liquid_seeded','1');} }
             catch(error) { gamesLibrary=defaultDeck.map(g=>({...g})); alert('Offline save storage is unavailable in this browser: '+error.message); }
             renderGameList();
         });
@@ -741,7 +742,7 @@
         async function exportLibrary(){try{const full={format:'GameHubOfflineSave',version:2,theme:localStorage.getItem(THEME_KEY)||'cyan',title:localStorage.getItem(CUSTOM_TITLE_KEY)||'Game Hub',favicon:localStorage.getItem(CUSTOM_FAVICON_KEY)||'',games:gamesLibrary};const blob=new Blob([JSON.stringify(full)],{type:'application/json'});downloadBlob(blob,'gamehub-master-save.json');}catch(e){alert('Could not export save: '+e.message);}}
         function downloadBlob(blob,name){const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
         function triggerImport(){document.getElementById('import-file').click();}
-        async function importLibrary(event){const file=event.target.files?.[0];if(!file)return;try{const parsed=JSON.parse(await file.text()),incoming=Array.isArray(parsed)?parsed:parsed.games;if(!Array.isArray(incoming)||!incoming.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&(typeof g.content==='string'||typeof g.file==='string')))throw new Error('Invalid GameHub save file');if(!confirm('Replace this library with the imported master save?'))return;gamesLibrary=incoming;await writeLibrary(gamesLibrary);if(parsed.theme)setTheme(parsed.theme);if(parsed.title){localStorage.setItem(CUSTOM_TITLE_KEY,parsed.title);document.title=parsed.title;}if(parsed.favicon)localStorage.setItem(CUSTOM_FAVICON_KEY,parsed.favicon);renderGameList();alert('Master save imported successfully.');}catch(e){alert('Import failed: '+e.message);}finally{event.target.value='';}}
+        async function importLibrary(event){const file=event.target.files?.[0];if(!file)return;try{const parsed=JSON.parse(await file.text()),incoming=Array.isArray(parsed)?parsed:parsed.games;if(!Array.isArray(incoming)||!incoming.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&(typeof g.content==='string'||typeof g.file==='string')))throw new Error('Invalid GameHub save file');if(!confirm('Replace this library with the imported master save?'))return;gamesLibrary=incoming;await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_super_liquid_seeded','1');if(parsed.theme)setTheme(parsed.theme);if(parsed.title){localStorage.setItem(CUSTOM_TITLE_KEY,parsed.title);document.title=parsed.title;}if(parsed.favicon)localStorage.setItem(CUSTOM_FAVICON_KEY,parsed.favicon);renderGameList();alert('Master save imported successfully.');}catch(e){alert('Import failed: '+e.message);}finally{event.target.value='';}}
     </script>
 </body>
 </html>

@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Hub</title>
+    <link id="game-hub-favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CjxyZWN0IHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgcng9IjEwIiBmaWxsPSIjMGIwYzEwIi8+CjxwYXRoIGQ9Ik0yMCA4aDI0bDEyIDIwLTEyIDIwSDIwTDggMjh6IiBmaWxsPSJub25lIiBzdHJva2U9IiM0NWYzZmYiIHN0cm9rZS13aWR0aD0iNCIvPgo8cGF0aCBkPSJNMjQgMThoMTZsNiAxMC02IDEwSDI0bC02LTEweiIgZmlsbD0iIzJjMzU0MCIgc3Ryb2tlPSIjNjZmY2YxIiBzdHJva2Utd2lkdGg9IjIiLz4KPGNpcmNsZSBjeD0iMzIiIGN5PSIyOCIgcj0iNCIgZmlsbD0iIzQ1ZjNmZiIvPgo8L3N2Zz4=">
+    <style>
+        :root {
+            --bg-primary: #0b0c10;
+            --bg-sidebar: #1f2833;
+            --bg-card: #2c3540;
+            --text-main: #c5c6c7;
+            --text-light: #ffffff;
+            --text-muted: #66fcf1;
+            --accent: #45f3ff;
+            --accent-hover: #1fbcff;
+            --danger: #ff4d4d;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace, system-ui;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-sidebar);
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #000;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        #sidebar.collapsed {
+            width: 0px;
+            overflow: hidden;
+            border-right: none;
+        }
+
+        .sidebar-header {
+            padding: 20px 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-light);
+            border-bottom: 2px solid #000;
+            white-space: nowrap;
+            text-align: center;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 10px;
+        }
+
+        .menu-title {
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin: 20px 0 10px 5px;
+            border-bottom: 1px dashed var(--bg-card);
+            padding-bottom: 3px;
+        }
+
+        .menu-title:first-of-type {
+            margin-top: 5px;
+        }
+
+        .game-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .game-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .game-btn {
+            width: 100%;
+            padding: 10px 8px;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 30px;
+        }
+
+        .game-btn::before {
+            content: "○ ";
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .game-btn:hover, .game-btn.active {
+            background-color: var(--bg-card);
+            color: var(--text-light);
+            font-weight: bold;
+        }
+
+        .game-btn.active::before {
+            content: "● ";
+        }
+
+        .delete-btn {
+            position: absolute;
+            right: 5px;
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+        }
+
+        .game-item:hover .delete-btn {
+            display: flex;
+        }
+
+        .sidebar-footer {
+            padding: 15px 10px;
+            border-top: 2px solid #000;
+            background-color: #151b23;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .io-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 8px 4px;
+            background-color: var(--bg-card);
+            border: 1px solid #4f5d75;
+            color: var(--text-main);
+            cursor: pointer;
+            font-size: 0.72rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: var(--text-main);
+            color: var(--bg-primary);
+        }
+
+        .primary-btn {
+            background-color: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .primary-btn:hover {
+            background-color: var(--accent);
+            color: var(--bg-primary);
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        #main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-primary);
+            position: relative;
+            height: 100%;
+            width: 100%;
+        }
+
+        .top-bar {
+            height: 45px;
+            background-color: var(--bg-sidebar);
+            border-bottom: 2px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            flex-shrink: 0;
+        }
+
+        .left-controls, .right-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .icon-toggle {
+            font-size: 1.1rem;
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            padding: 4px 8px;
+            border: 1px solid transparent;
+        }
+
+        .icon-toggle:hover {
+            border-color: var(--accent);
+            background-color: var(--bg-card);
+        }
+
+        #current-game-title {
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .game-viewport {
+            flex: 1;
+            position: relative;
+            background-color: #000;
+            width: 100%;
+            height: 100%;
+        }
+
+        #game-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        .no-game-placeholder {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .no-game-placeholder h3 {
+            margin-bottom: 15px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.15rem;
+        }
+
+        .no-game-placeholder p {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background-color: var(--bg-sidebar);
+            border: 2px solid var(--accent);
+            width: 360px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .modal-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: var(--text-light);
+            border-bottom: 1px solid #000;
+            padding-bottom: 4px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 8px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--bg-card);
+            color: var(--accent);
+            outline: none;
+            font-size: 0.9rem;
+            font-family: monospace;
+        }
+
+        .modal-input:focus {
+            border-color: var(--accent);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 6px 14px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 1px solid var(--text-main);
+            background: transparent;
+            color: var(--text-main);
+        }
+
+        .modal-btn:hover {
+            background-color: var(--text-main);
+            color: var(--bg-primary);
+        }
+
+        .modal-confirm {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .modal-confirm:hover {
+            background-color: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- Geometric arcade treatment --- */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.18;
+            background-image:
+                linear-gradient(30deg, transparent 48%, rgba(69,243,255,.14) 49%, transparent 50%),
+                linear-gradient(150deg, transparent 48%, rgba(69,243,255,.10) 49%, transparent 50%);
+            background-size: 34px 58px;
+            z-index: 0;
+        }
+
+        #sidebar, #main-content { position: relative; }
+        #sidebar::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: -7px;
+            width: 1px;
+            height: 100%;
+            background: var(--accent);
+            opacity: .25;
+            pointer-events: none;
+        }
+
+        .sidebar-header,
+        .top-bar {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-header::before,
+        .top-bar::before {
+            content: "◇  ◇  ◇  ◇  ◇  ◇  ◇";
+            position: absolute;
+            color: var(--accent);
+            opacity: .16;
+            font-size: 1.4rem;
+            letter-spacing: 10px;
+            white-space: nowrap;
+            transform: translateY(-2px);
+            pointer-events: none;
+        }
+
+        .sidebar-header::after {
+            content: "";
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            bottom: 5px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            opacity: .5;
+        }
+
+        .game-item {
+            border-left: 1px solid transparent;
+            transition: border-color .15s ease, transform .15s ease;
+        }
+
+        .game-item:hover {
+            border-left-color: var(--accent);
+            transform: translateX(2px);
+        }
+
+        /* Hexagon sidebar markers */
+        .game-btn::before {
+            content: "⬡ ";
+            display: inline-block;
+            color: var(--accent);
+            font-size: 1.05em;
+            font-weight: bold;
+            width: 1.35em;
+            text-shadow: 0 0 5px rgba(69,243,255,.35);
+        }
+
+        .game-btn.active::before {
+            content: "⬢ ";
+            color: var(--accent);
+            text-shadow: 0 0 8px var(--accent);
+        }
+
+        .action-btn,
+        .modal-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::after,
+        .modal-btn::after {
+            content: "";
+            position: absolute;
+            width: 7px;
+            height: 7px;
+            border-top: 1px solid var(--accent);
+            border-right: 1px solid var(--accent);
+            right: 3px;
+            top: 3px;
+            opacity: .7;
+        }
+
+        .game-viewport::before,
+        .game-viewport::after {
+            content: "";
+            position: absolute;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .game-viewport::before {
+            inset: 12px;
+            border: 1px solid rgba(69,243,255,.10);
+            clip-path: polygon(0 18px, 18px 0, calc(100% - 18px) 0, 100% 18px,
+                              100% calc(100% - 18px), calc(100% - 18px) 100%, 18px 100%, 0 calc(100% - 18px));
+        }
+
+        .game-viewport::after {
+            width: 90px;
+            height: 90px;
+            right: 28px;
+            bottom: 28px;
+            border: 1px solid rgba(69,243,255,.12);
+            transform: rotate(30deg);
+        }
+
+        .modal-content {
+            position: relative;
+            box-shadow: 0 0 0 1px rgba(69,243,255,.12), 0 0 30px rgba(69,243,255,.08);
+            clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px),
+                              calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+        }
+
+        .modal-content::before {
+            content: "◆";
+            position: absolute;
+            top: 6px;
+            right: 10px;
+            color: var(--accent);
+            opacity: .45;
+        }
+
+        .no-game-placeholder::before {
+            content: "⬡  ◇  ⬡";
+            display: block;
+            color: var(--accent);
+            font-size: 1.5rem;
+            letter-spacing: 8px;
+            margin-bottom: 12px;
+            opacity: .65;
+        }
+
+        .menu-title {
+            position: relative;
+        }
+
+        .menu-title::after {
+            content: "///";
+            float: right;
+            color: var(--accent);
+            opacity: .35;
+            letter-spacing: 2px;
+        }
+
+
+        .offline-badge {
+            margin-top: 7px;
+            font-size: .62rem;
+            letter-spacing: 2px;
+            color: var(--accent);
+            opacity: .75;
+        }
+
+        body.dev-mode { --bg-primary:#050505; --bg-sidebar:#260909; --bg-card:#3b1111; --text-main:#f5dede; --text-light:#ffffff; --text-muted:#ff7777; --accent:#ff2424; --danger:#ff3535; }
+        body.dev-mode .top-bar, body.dev-mode .sidebar-footer { background:#100303; }
+        .game-icon { display:inline-block; width:1.35em; color:var(--accent); text-shadow:0 0 7px var(--accent); }
+        .selection-list { max-height:38vh; overflow:auto; display:flex; flex-direction:column; gap:8px; }
+        .selection-row { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:8px; padding:7px; border-bottom:1px solid var(--bg-card); }
+        .selection-row button { padding:6px 9px; cursor:pointer; color:var(--text-main); background:transparent; border:1px solid var(--text-muted); }
+        .selection-row button:hover { color:var(--bg-primary); background:var(--accent); }
+        .selection-row .remove-game { border-color:var(--danger); color:var(--danger); }
+        .file-note { font-size:.7rem; color:var(--text-muted); line-height:1.4; }
+        .creator-credit { margin-top:8px; color:var(--text-muted); font-size:.65rem; line-height:1.5; text-align:center; }
+        .top-bar select { color:var(--text-main); background:var(--bg-primary); border:1px solid var(--bg-card); padding:5px; }
+        .game-btn::before, .game-btn.active::before { content:none; }
+        #details-modal { z-index:101; }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <div class="sidebar-header">
+            Game Hub
+        </div>
+
+        <div class="sidebar-menu">
+            <div class="menu-title">Arcade Deck</div>
+            <ul id="game-list" class="game-list"></ul>
+        </div>
+        <div class="sidebar-footer">
+            <div class="menu-title" style="margin:0 0 4px 0;">Local Profile System</div>
+            <div class="io-grid">
+                <button class="action-btn" onclick="exportLibrary()">⬇ Export Master File</button>
+                <button class="action-btn" onclick="triggerImport()">⬆ Import Master File</button>
+            </div>
+            <input type="file" id="import-file" class="hidden" accept=".json" onchange="importLibrary(event)">
+
+            <div class="menu-title" style="margin:4px 0 4px 0;">Developer Tools</div>
+            <button class="action-btn primary-btn" onclick="openPasswordModal()">⚙ Open DEV TOOLS</button>
+            <div class="creator-credit"><strong>Credits</strong><br>Created by David Dobkowski</div>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <div class="top-bar">
+            <div class="left-controls">
+                <button class="icon-toggle" onclick="toggleSidebar()" title="Toggle Deck Panel">☰</button>
+                <div id="current-game-title">No Active Game Session</div>
+            </div>
+            <div class="right-controls">
+                <button class="icon-toggle" onclick="reloadGame()" title="Reload game">⟳</button>
+                <select id="theme-picker" onchange="setTheme(this.value)" aria-label="Theme"><option value="cyan">Cyan</option><option value="red">Red</option><option value="green">Green</option><option value="purple">Purple</option></select>
+                <button class="icon-toggle" onclick="openCustomizeModal()" title="Customize Game Hub">⚙</button>
+                <button class="icon-toggle" onclick="toggleFullscreen()" title="Toggle fullscreen">⛶</button>
+            </div>
+        </div>
+
+        <div class="game-viewport" id="viewport-container">
+            <div id="placeholder" class="no-game-placeholder">
+                <h3>No Active Game Session</h3>
+                <p>Select a title from your collapsible dashboard module to launch its runtime loop.</p>
+            </div>
+            <iframe id="game-frame" class="hidden" src="" allow="autoplay; fullscreen; gamepad"></iframe>
+        </div>
+    </div>
+
+
+    <div id="customize-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">Customize Game Hub</div>
+            <label style="font-size:.72rem;color:var(--text-muted);">TAB TITLE</label>
+            <input type="text" id="custom-title-input" class="modal-input" placeholder="Game Hub">
+            <label style="font-size:.72rem;color:var(--text-muted);">FAVICON SVG / EMOJI</label>
+            <input type="text" id="custom-favicon-input" class="modal-input" placeholder="Paste an emoji or SVG data/image URL">
+            <div style="font-size:.68rem;line-height:1.5;color:var(--text-main);opacity:.8;">
+                Use an emoji (◆, ⬡, 🎮) or a local/data SVG image source. Nothing is sent online.
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="resetCustomization()">Reset</button>
+                <button class="modal-btn" onclick="closeModal('customize-modal')">Cancel</button>
+                <button class="modal-btn modal-confirm" onclick="saveCustomization()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">Authentication Required</div>
+            <input type="password" id="password-input" class="modal-input" placeholder="ACCESS KEY...">
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="closeModal('password-modal')">Abort</button>
+                <button class="modal-btn modal-confirm" onclick="verifyPassword()">Execute</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">Compile Game Array</div>
+            <input type="text" id="game-name-input" class="modal-input" placeholder="GAME TITLE (e.g. Retro Bowl)">
+            <input type="text" id="game-icon-input" class="modal-input" placeholder="GAME ICON (e.g. 🏈)">
+            <input type="text" id="game-path-input" class="modal-input" placeholder="REPOSITORY FILE (e.g. my_game.html)">
+            <div class="file-note">Enter the relative path to an HTML game file in this GitHub repository. Do not enter a web address.</div>
+            <div class="modal-actions">
+                <button class="modal-btn" onclick="closeModal('details-modal')">Cancel</button>
+                <button class="modal-btn modal-confirm" onclick="saveNewGame()">Add Game</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="selection-modal" class="modal">
+        <div class="modal-content" style="width:min(620px,94vw);">
+            <div class="modal-title">Game Selection</div>
+            <div class="file-note">Developer mode is active. Pause access or permanently remove a title.</div>
+            <div id="selection-list" class="selection-list"></div>
+            <div class="menu-title">Change DEV TOOLS Password</div>
+            <input type="password" id="new-dev-password" class="modal-input" placeholder="NEW PASSWORD">
+            <input type="password" id="confirm-dev-password" class="modal-input" placeholder="CONFIRM NEW PASSWORD">
+            <div class="file-note">This password is saved in this browser. The initial password is 071812.</div>
+            <div class="modal-actions"><button class="modal-btn modal-confirm" onclick="changeDevPassword()">Save Password</button></div>
+            <div class="modal-actions"><button class="modal-btn" onclick="closeSelection()">Done</button><button class="modal-btn modal-confirm" onclick="openModal('details-modal')">Add HTML Game</button></div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'gamehub_offline_library_v2';
+        const THEME_KEY = 'gamehub_offline_theme';
+        const DEV_PASSWORD_KEY = 'gamehub_dev_tools_password';
+        const DEFAULT_DEV_PASSWORD = '071812';
+        let gamesLibrary = [];
+        let activeObjectUrl = null;
+        const defaultDeck = [
+            {id:'def_1',name:'Football Bros',file:'football_bros.html',icon:'🏈'},
+            {id:'def_2',name:'Basketball Bros',file:'basketball_bros.html',icon:'🏀'},
+            {id:'def_3',name:'Soccer Bros',file:'soccer_bros.html',icon:'⚽'},
+            {id:'def_4',name:'Baseball Bros',file:'baseball_bros.html',icon:'⚾'},
+            {id:'def_5',name:'Retro Bowl',file:'retro_bowl.html',icon:'🏈'},
+            {id:'def_6',name:'Retro Bowl College',file:'retro_bowl_college.html',icon:'🏈'},
+            {id:'def_7',name:'Adventure Capitalist',file:'adventure_capitalist.html',icon:'💰'},
+            {id:'def_8',name:'Super Liquid Soccer',file:'super_liquid_soccer.html',icon:'⚽'}
+        ];
+        const STORE = 'library';
+        let dbPromise;
+        function openDB() {
+            if (!('indexedDB' in window)) return Promise.reject(new Error('This browser does not support offline game storage.'));
+            if (!dbPromise) dbPromise = new Promise((resolve,reject)=>{
+                const request=indexedDB.open('GameHubOffline',1);
+                request.onupgradeneeded=()=>request.result.createObjectStore(STORE);
+                request.onsuccess=()=>resolve(request.result);
+                request.onerror=()=>reject(request.error);
+            });
+            return dbPromise;
+        }
+        async function readLibrary() {
+            const db=await openDB();
+            return new Promise((resolve,reject)=>{ const r=db.transaction(STORE).objectStore(STORE).get(STORAGE_KEY); r.onsuccess=()=>resolve(r.result); r.onerror=()=>reject(r.error); });
+        }
+        async function writeLibrary(value) {
+            const db=await openDB();
+            return new Promise((resolve,reject)=>{ const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(value,STORAGE_KEY); tx.oncomplete=()=>resolve(); tx.onerror=()=>reject(tx.error); });
+        }
+        window.addEventListener('DOMContentLoaded', async () => {
+            applyCustomization(); setTheme(localStorage.getItem(THEME_KEY)||'cyan',false);
+            try { const saved=await readLibrary(); gamesLibrary=Array.isArray(saved)?saved.map(g=>{const base=defaultDeck.find(d=>d.id===g.id);return base?{...base,...g,file:base.file}:g;}):defaultDeck.map(g=>({...g})); if(!saved) await writeLibrary(gamesLibrary); if(saved&&!localStorage.getItem('gamehub_super_liquid_seeded')){if(!gamesLibrary.some(g=>g.id==='def_8'))gamesLibrary.push({...defaultDeck.find(g=>g.id==='def_8')});await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_super_liquid_seeded','1');} }
+            catch(error) { gamesLibrary=defaultDeck.map(g=>({...g})); alert('Offline save storage is unavailable in this browser: '+error.message); }
+            renderGameList();
+        });
+        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
+        function toggleFullscreen(){const box=document.getElementById('viewport-container');if(!document.fullscreenElement)box.requestFullscreen?.().catch(()=>{});else document.exitFullscreen?.();}
+        function reloadGame(){const frame=document.getElementById('game-frame');if(frame.dataset.content){frame.srcdoc=frame.dataset.content;}else if(frame.src)frame.src=frame.src;}
+        function setTheme(theme,persist=true){const colors={cyan:['#0b0c10','#1f2833','#2c3540','#c5c6c7','#ffffff','#66fcf1','#45f3ff','#1fbcff','#ff4d4d'],red:['#0b0505','#241313','#382020','#e0caca','#ffffff','#ff8a8a','#ef3030','#c51616','#ff4d4d'],green:['#07100c','#17271f','#26382e','#c5d1c8','#ffffff','#8ef0b5','#37d67a','#149d52','#ff4d4d'],purple:['#0d0912','#21182b','#342540','#d2c6dc','#ffffff','#c8a7ee','#a855f7','#7e22ce','#ff4d4d']};
+            if(!colors[theme])theme='cyan';const vars=['--bg-primary','--bg-sidebar','--bg-card','--text-main','--text-light','--text-muted','--accent','--accent-hover','--danger'];vars.forEach((v,i)=>document.documentElement.style.setProperty(v,colors[theme][i]));const p=document.getElementById('theme-picker');if(p)p.value=theme;if(persist)localStorage.setItem(THEME_KEY,theme);}
+        const CUSTOM_TITLE_KEY='game_hub_custom_title', CUSTOM_FAVICON_KEY='game_hub_custom_favicon';
+        function applyCustomization(){document.title=localStorage.getItem(CUSTOM_TITLE_KEY)||'Game Hub';const val=localStorage.getItem(CUSTOM_FAVICON_KEY),link=document.getElementById('game-hub-favicon');if(val&&link){if(val.startsWith('data:image/'))link.href=val;else if(val.length<8)link.href='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text y="52" font-size="52">'+val+'</text></svg>');}}
+        function openCustomizeModal(){document.getElementById('custom-title-input').value=localStorage.getItem(CUSTOM_TITLE_KEY)||document.title||'Game Hub';document.getElementById('custom-favicon-input').value=localStorage.getItem(CUSTOM_FAVICON_KEY)||'';openModal('customize-modal');}
+        function saveCustomization(){localStorage.setItem(CUSTOM_TITLE_KEY,document.getElementById('custom-title-input').value.trim()||'Game Hub');const f=document.getElementById('custom-favicon-input').value.trim();if(f)localStorage.setItem(CUSTOM_FAVICON_KEY,f);else localStorage.removeItem(CUSTOM_FAVICON_KEY);applyCustomization();closeModal('customize-modal');}
+        function resetCustomization(){localStorage.removeItem(CUSTOM_TITLE_KEY);localStorage.removeItem(CUSTOM_FAVICON_KEY);document.title='Game Hub';document.getElementById('custom-title-input').value='Game Hub';document.getElementById('custom-favicon-input').value='';}
+        function openModal(id){const modal=document.getElementById(id);modal.classList.add('active');const input=modal.querySelector('input');if(input)input.focus();}
+        function closeModal(id){document.getElementById(id).classList.remove('active');}
+        function openPasswordModal(){document.getElementById('password-input').value='';openModal('password-modal');}
+        function verifyPassword(){if(document.getElementById('password-input').value===(localStorage.getItem(DEV_PASSWORD_KEY)||DEFAULT_DEV_PASSWORD)){closeModal('password-modal');document.body.classList.add('dev-mode');renderSelection();setTimeout(()=>openModal('selection-modal'),150);}else{alert('Access code is incorrect.');closeModal('password-modal');}}
+        function changeDevPassword(){const next=document.getElementById('new-dev-password').value,confirmValue=document.getElementById('confirm-dev-password').value;if(next.length<4){alert('Use a password with at least 4 characters.');return;}if(next!==confirmValue){alert('The passwords do not match.');return;}localStorage.setItem(DEV_PASSWORD_KEY,next);document.getElementById('new-dev-password').value='';document.getElementById('confirm-dev-password').value='';alert('DEV TOOLS password changed.');}
+        function closeSelection(){closeModal('selection-modal');closeModal('details-modal');document.body.classList.remove('dev-mode');}
+        function renderSelection(){const list=document.getElementById('selection-list');list.innerHTML='';gamesLibrary.forEach(g=>{const row=document.createElement('div');row.className='selection-row';const label=document.createElement('span');label.textContent=(g.icon||'🎮')+' '+g.name+(g.file?' — '+g.file:'')+(g.paused?' (Paused)':'');const pause=document.createElement('button');pause.textContent=g.paused?'Resume':'Pause';pause.onclick=()=>{g.paused=!g.paused;if(g.paused&&g.id===document.getElementById('game-frame').dataset.activeId)stopCurrentGame();persistAndRender();};const remove=document.createElement('button');remove.textContent='Remove';remove.className='remove-game';remove.onclick=()=>{if(confirm('Permanently remove '+g.name+'?')){if(g.id===document.getElementById('game-frame').dataset.activeId)stopCurrentGame();gamesLibrary=gamesLibrary.filter(x=>x.id!==g.id);persistAndRender();}};row.append(label,pause,remove);list.append(row);});}
+        async function saveNewGame(){const name=document.getElementById('game-name-input').value.trim(),path=document.getElementById('game-path-input').value.trim(),icon=document.getElementById('game-icon-input').value.trim()||iconFor(name);if(!name||!path){alert('Enter a title and repository HTML filename.');return;}if(!/\.html?$/i.test(path)||/^(?:[a-z]+:)?\/\//i.test(path)||path.startsWith('/')||path.split(/[\\/]/).includes('..')){alert('Enter a relative .html or .htm file path inside this repository.');return;}try{const item={id:'user_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),name,icon,file:path,paused:false};gamesLibrary.push(item);await writeLibrary(gamesLibrary);renderGameList();renderSelection();document.getElementById('game-name-input').value='';document.getElementById('game-icon-input').value='';document.getElementById('game-path-input').value='';closeModal('details-modal');}catch(err){alert('Could not save this game: '+err.message);}}
+        function iconFor(name){const n=name.toLowerCase();if(n.includes('retro bowl')||n.includes('football'))return '🏈';if(n.includes('basket'))return '🏀';if(n.includes('soccer'))return '⚽';if(n.includes('baseball'))return '⚾';if(n.includes('capitalist'))return '💰';return '🎮';}
+        async function persistAndRender(){try{await writeLibrary(gamesLibrary);renderGameList();renderSelection();}catch(e){alert('Could not save library: '+e.message);}}
+        function stopCurrentGame(){const frame=document.getElementById('game-frame');frame.src='about:blank';frame.srcdoc='';frame.removeAttribute('data-active-id');frame.removeAttribute('data-content');if(activeObjectUrl){URL.revokeObjectURL(activeObjectUrl);activeObjectUrl=null;}frame.classList.add('hidden');document.getElementById('placeholder').classList.remove('hidden');document.getElementById('current-game-title').textContent='No Active Game Session';}
+        function loadGame(id,name){const game=gamesLibrary.find(x=>x.id===id);if(game?.paused){alert('This game is paused.');return;}if(!game?.file&&!game?.content){alert('No repository HTML file is set for this game. Open DEV TOOLS to update it.');return;}const frame=document.getElementById('game-frame');document.getElementById('placeholder').classList.add('hidden');frame.classList.remove('hidden');frame.dataset.activeId=id;document.getElementById('current-game-title').textContent=name.toUpperCase();document.querySelectorAll('.game-btn').forEach(b=>b.classList.remove('active'));document.querySelector('[data-id="'+CSS.escape(id)+'"] .game-btn')?.classList.add('active');if(game.content){frame.removeAttribute('src');frame.dataset.content=game.content;frame.srcdoc=game.content;}else{frame.removeAttribute('srcdoc');frame.removeAttribute('data-content');frame.src=new URL(game.file.replace(/\\/g,'/'),location.href).href;}}
+        function renderGameList(){const list=document.getElementById('game-list');list.innerHTML='';gamesLibrary.filter(g=>!g.paused).forEach(game=>{const li=document.createElement('li');li.className='game-item';li.dataset.id=game.id;const button=document.createElement('button');button.className='game-btn';button.type='button';button.textContent=game.name;button.onclick=()=>loadGame(game.id,game.name);const marker=document.createElement('span');marker.className='game-icon';marker.textContent=game.icon||iconFor(game.name);button.prepend(marker);li.append(button);list.append(li);});}
+        async function exportLibrary(){try{const full={format:'GameHubOfflineSave',version:2,theme:localStorage.getItem(THEME_KEY)||'cyan',title:localStorage.getItem(CUSTOM_TITLE_KEY)||'Game Hub',favicon:localStorage.getItem(CUSTOM_FAVICON_KEY)||'',games:gamesLibrary};const blob=new Blob([JSON.stringify(full)],{type:'application/json'});downloadBlob(blob,'gamehub-master-save.json');}catch(e){alert('Could not export save: '+e.message);}}
+        function downloadBlob(blob,name){const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+        function triggerImport(){document.getElementById('import-file').click();}
+        async function importLibrary(event){const file=event.target.files?.[0];if(!file)return;try{const parsed=JSON.parse(await file.text()),incoming=Array.isArray(parsed)?parsed:parsed.games;if(!Array.isArray(incoming)||!incoming.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&(typeof g.content==='string'||typeof g.file==='string')))throw new Error('Invalid GameHub save file');if(!confirm('Replace this library with the imported master save?'))return;gamesLibrary=incoming;await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_super_liquid_seeded','1');if(parsed.theme)setTheme(parsed.theme);if(parsed.title){localStorage.setItem(CUSTOM_TITLE_KEY,parsed.title);document.title=parsed.title;}if(parsed.favicon)localStorage.setItem(CUSTOM_FAVICON_KEY,parsed.favicon);renderGameList();alert('Master save imported successfully.');}catch(e){alert('Import failed: '+e.message);}finally{event.target.value='';}}
+    </script>
+</body>
+</html>
