@@ -734,7 +734,7 @@
           <h3>1. Local Data Processing (Privacy First)</h3><p>Game Hub is built with a privacy-first approach.</p><ul><li><strong>Local Profile System:</strong> Your game settings, active game sessions, preferences, and developer tools passwords are saved locally in your own browser (using local storage or cookies).</li><li><strong>Master Files:</strong> When you use the "Export Master File" or "Import Master File" tools, the data is processed entirely on your local machine. Nothing is sent online or uploaded to our servers.</li><li><strong>Custom Games:</strong> Compiling HTML games uses relative paths in the repository environment and executes locally within your browser runtime loop.</li></ul>
           <h3>2. Information We Collect Automatically</h3><p>Because our platform is hosted via Vercel, minor standard web analytics data may be processed dynamically at build time or page view to ensure site stability, security, and performance. This includes anonymous metrics such as device type, browser type, and operating system. We do not collect or track individually identifiable personal information (such as your name or exact GPS location) through these analytics.</p>
           <h3>3. Third-Party Links</h3><p>Our repository environment may link to external developer services, including GitHub. We are not responsible for the privacy practices or content of third-party websites. We encourage you to read the privacy policies of any third-party sites you visit.</p>
-          <h3>4. Data Security</h3><p>We implement standard client-side security measures, including browser-saved password hashing features for Developer Tools. However, since your data lives in your browser, the security of your local game profiles and master files depends on the security of your personal electronic device.</p>
+          <h3>4. Data Security</h3><p>The Developer Tools access code is stored in this browser and is not a secure account credential. Do not reuse a sensitive password for it. Since your data lives in your browser, the security of your local game profiles and master files depends on the security of your personal electronic device.</p>
           <h3>5. Your Rights</h3><p>Since we do not collect or store your personal data on a centralized server, we do not have user data to delete or modify upon request. You can completely wipe your local profile, history, and passwords at any time simply by clearing your browser's cache and site data for this domain.</p>
           <h3>6. Changes to This Policy</h3><p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.</p>
           <h3>7. Contact Us</h3><p>If you have any questions or concerns about this Privacy Policy, please reach out to us at: TBR</p>
@@ -793,7 +793,7 @@
         }
         window.addEventListener('DOMContentLoaded', async () => {
             applyCustomization(); setTheme(localStorage.getItem(THEME_KEY)||'cyan',false);
-            try { const saved=await readLibrary(); gamesLibrary=Array.isArray(saved)?saved.map(g=>{const base=defaultDeck.find(d=>d.id===g.id);return base?{...base,...g,file:base.file}:g;}):defaultDeck.map(g=>({...g})); gamesLibrary=gamesLibrary.filter(g=>g.file!=='slope-3.html'); if(!saved) await writeLibrary(gamesLibrary); if(saved&&!localStorage.getItem('gamehub_super_liquid_seeded')){if(!gamesLibrary.some(g=>g.id==='def_8'))gamesLibrary.push({...defaultDeck.find(g=>g.id==='def_8')});await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_super_liquid_seeded','1');} if(saved&&!localStorage.getItem('gamehub_supplied_games_seeded_v1')){defaultDeck.filter(g=>Number(g.id.slice(4))>=9&&g.id!=='def_18').forEach(base=>{if(!gamesLibrary.some(g=>g.id===base.id||g.name===base.name))gamesLibrary.push({...base});});await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_supplied_games_seeded_v1','1');} if(saved&&!localStorage.getItem('gamehub_original_slope_seeded_v1')){const slope=defaultDeck.find(g=>g.id==='def_18');if(!gamesLibrary.some(g=>g.id===slope.id||g.name===slope.name))gamesLibrary.push({...slope});await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_original_slope_seeded_v1','1');} }
+            try { const saved=await readLibrary(); gamesLibrary=Array.isArray(saved)?saved.map(g=>{const base=defaultDeck.find(d=>d.id===g.id);return base?{...base,...g,file:base.file}:g;}):defaultDeck.map(g=>({...g})); if(!saved) await writeLibrary(gamesLibrary); if(saved&&!localStorage.getItem('gamehub_super_liquid_seeded')){if(!gamesLibrary.some(g=>g.id==='def_8'))gamesLibrary.push({...defaultDeck.find(g=>g.id==='def_8')});await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_super_liquid_seeded','1');} if(saved&&!localStorage.getItem('gamehub_supplied_games_seeded_v1')){defaultDeck.filter(g=>Number(g.id.slice(4))>=9&&g.id!=='def_18').forEach(base=>{if(!gamesLibrary.some(g=>g.id===base.id||g.name===base.name))gamesLibrary.push({...base});});await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_supplied_games_seeded_v1','1');} if(saved&&!localStorage.getItem('gamehub_original_slope_seeded_v1')){const slope=defaultDeck.find(g=>g.id==='def_18');if(!gamesLibrary.some(g=>g.id===slope.id||g.name===slope.name))gamesLibrary.push({...slope});await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_original_slope_seeded_v1','1');} }
             catch(error) { gamesLibrary=defaultDeck.map(g=>({...g})); alert('Offline save storage is unavailable in this browser: '+error.message); }
             renderGameList(); showEntryLegal();
         });
@@ -830,10 +830,188 @@
         function stopCurrentGame(){const frame=document.getElementById('game-frame');frame.src='about:blank';frame.srcdoc='';frame.removeAttribute('data-active-id');frame.removeAttribute('data-content');if(activeObjectUrl){URL.revokeObjectURL(activeObjectUrl);activeObjectUrl=null;}frame.classList.add('hidden');document.getElementById('placeholder').classList.remove('hidden');document.getElementById('current-game-title').textContent='No Active Game Session';}
         function loadGame(id,name){const game=gamesLibrary.find(x=>x.id===id);if(game?.paused){alert('This game is paused.');return;}if(!game?.file&&!game?.content){alert('No repository HTML file is set for this game. Open DEV TOOLS to update it.');return;}const frame=document.getElementById('game-frame');document.getElementById('placeholder').classList.add('hidden');frame.classList.remove('hidden');frame.dataset.activeId=id;document.getElementById('current-game-title').textContent=name.toUpperCase();document.querySelectorAll('.game-btn').forEach(b=>b.classList.remove('active'));document.querySelector('[data-id="'+CSS.escape(id)+'"] .game-btn')?.classList.add('active');if(game.content){frame.removeAttribute('src');frame.dataset.content=game.content;frame.srcdoc=game.content;}else{frame.removeAttribute('srcdoc');frame.removeAttribute('data-content');frame.src=new URL(game.file.replace(/\\/g,'/'),location.href).href;}}
         function renderGameList(){const list=document.getElementById('game-list');list.innerHTML='';gamesLibrary.filter(g=>!g.paused).forEach(game=>{const li=document.createElement('li');li.className='game-item';li.dataset.id=game.id;const button=document.createElement('button');button.className='game-btn';button.type='button';button.textContent=game.name;button.onclick=()=>loadGame(game.id,game.name);const marker=document.createElement('span');marker.className='game-icon';marker.textContent=game.icon||iconFor(game.name);button.prepend(marker);li.append(button);list.append(li);});}
-        async function exportLibrary(){try{const full={format:'GameHubOfflineSave',version:2,theme:localStorage.getItem(THEME_KEY)||'cyan',title:localStorage.getItem(CUSTOM_TITLE_KEY)||'Game Hub',favicon:localStorage.getItem(CUSTOM_FAVICON_KEY)||'',games:gamesLibrary};const blob=new Blob([JSON.stringify(full)],{type:'application/json'});downloadBlob(blob,'gamehub-master-save.json');}catch(e){alert('Could not export save: '+e.message);}}
+        async function serializeIDBValue(value,state={map:new WeakMap(),next:1}){if(value===null||typeof value!=='object')return typeof value==='bigint'?{$saveType:'BigInt',value:String(value)}:value;if(value instanceof Date)return{$saveType:'Date',value:value.toISOString()};if(value instanceof Blob)return{$saveType:'Blob',type:value.type,data:Array.from(new Uint8Array(await value.arrayBuffer()))};if(value instanceof ArrayBuffer)return{$saveType:'ArrayBuffer',data:Array.from(new Uint8Array(value))};if(ArrayBuffer.isView(value))return{$saveType:'TypedArray',name:value.constructor.name,data:Array.from(new Uint8Array(value.buffer,value.byteOffset,value.byteLength))};if(state.map.has(value))return{$saveType:'Reference',id:state.map.get(value)};const id=state.next++;state.map.set(value,id);if(value instanceof Map)return{$saveType:'Map',id,entries:await Promise.all(Array.from(value,async([k,v])=>[await serializeIDBValue(k,state),await serializeIDBValue(v,state)]))};if(value instanceof Set)return{$saveType:'Set',id,values:await Promise.all(Array.from(value,v=>serializeIDBValue(v,state)))};if(Array.isArray(value))return{$saveType:'Array',id,items:await Promise.all(value.map(v=>serializeIDBValue(v,state)))};const entries={};for(const key of Object.keys(value))entries[key]=await serializeIDBValue(value[key],state);return{$saveType:'Object',id,entries};}
+        function deserializeIDBValue(value,refs=new Map()){if(value===null||typeof value!=='object'||!value.$saveType)return value;if(value.$saveType==='BigInt')return BigInt(value.value);if(value.$saveType==='Reference')return refs.get(value.id);if(value.$saveType==='Date')return new Date(value.value);if(value.$saveType==='Blob')return new Blob([new Uint8Array(value.data)],{type:value.type});if(value.$saveType==='ArrayBuffer')return new Uint8Array(value.data).buffer;if(value.$saveType==='TypedArray'){const bytes=new Uint8Array(value.data);const type=globalThis[value.name];return typeof type==='function'?new type(bytes.buffer):bytes;}let out;if(value.$saveType==='Array')out=[];else if(value.$saveType==='Map')out=new Map();else if(value.$saveType==='Set')out=new Set();else if(value.$saveType==='Object')out={};else return value;refs.set(value.id,out);if(value.$saveType==='Array')for(const item of value.items)out.push(deserializeIDBValue(item,refs));else if(value.$saveType==='Map')for(const [key,item]of value.entries)out.set(deserializeIDBValue(key,refs),deserializeIDBValue(item,refs));else if(value.$saveType==='Set')for(const item of value.values)out.add(deserializeIDBValue(item,refs));else for(const [key,item]of Object.entries(value.entries))out[key]=deserializeIDBValue(item,refs);return out;}
+        const PRIVATE_IDB_DATABASES=/firebase|auth|credential|token|analytics/i;
+        function isPrivateStorageKey(key){return key===DEV_PASSWORD_KEY||/^firebase:/i.test(key)||/(?:^|[_:-])(auth(?:user|token)?|access[_-]?token|refresh[_-]?token|password|credential)(?:$|[_:-])/i.test(key);}
+        async function exportIndexedDatabases() {
+            if (!window.indexedDB || typeof indexedDB.databases !== 'function') return [];
+            const infos = await indexedDB.databases();
+            const safeInfos = infos.filter(info => info.name && !PRIVATE_IDB_DATABASES.test(info.name));
+            return Promise.all(safeInfos.map(info => new Promise((resolve, reject) => {
+                const request = indexedDB.open(info.name);
+                request.onerror = () => reject(request.error || new Error('Could not open database ' + info.name));
+                request.onsuccess = async () => {
+                    const db = request.result;
+                    try {
+                        const stores = [];
+                        for (const name of Array.from(db.objectStoreNames)) {
+                            const tx = db.transaction(name, 'readonly');
+                            const store = tx.objectStore(name);
+                            const entries = [];
+                            const txDone = new Promise((done, fail) => {
+                                tx.oncomplete = done;
+                                tx.onerror = () => fail(tx.error || new Error('Could not read database ' + db.name));
+                                tx.onabort = () => fail(tx.error || new Error('Database read was aborted: ' + db.name));
+                            });
+                            const cursorReq = store.openCursor();
+                            await new Promise((done, fail) => {
+                                cursorReq.onerror = () => fail(cursorReq.error || new Error('Could not read object store ' + name));
+                                cursorReq.onsuccess = () => {
+                                    const cursor = cursorReq.result;
+                                    if (!cursor) return done();
+                                    entries.push({ key: cursor.key, value: cursor.value });
+                                    cursor.continue();
+                                };
+                            });
+                            await txDone;
+                            stores.push({
+                                name,
+                                keyPath: store.keyPath,
+                                autoIncrement: store.autoIncrement,
+                                indexes: Array.from(store.indexNames, indexName => {
+                                    const index = store.index(indexName);
+                                    return { name: index.name, keyPath: index.keyPath, unique: index.unique, multiEntry: index.multiEntry };
+                                }),
+                                entries: await Promise.all(entries.map(async entry => ({
+                                    key: await serializeIDBValue(entry.key),
+                                    value: await serializeIDBValue(entry.value)
+                                })))
+                            });
+                        }
+                        db.close();
+                        resolve({ name: db.name, version: db.version, stores });
+                    } catch (error) {
+                        db.close();
+                        reject(error);
+                    }
+                };
+            })));
+        }
+        async function restoreIndexedDatabases(snapshots) {
+            if (!Array.isArray(snapshots) || !snapshots.length || !window.indexedDB) return;
+            for (const saved of snapshots) {
+                if (!saved || typeof saved.name !== 'string' || PRIVATE_IDB_DATABASES.test(saved.name) || !Array.isArray(saved.stores)) continue;
+                const infos = typeof indexedDB.databases === 'function' ? await indexedDB.databases() : [];
+                const existing = infos.find(info => info.name === saved.name);
+                let currentVersion = existing?.version || 0;
+                let currentSchema = [];
+                if (existing) {
+                    currentSchema = await new Promise((resolve, reject) => {
+                        const request = indexedDB.open(saved.name);
+                        request.onerror = () => reject(request.error || new Error('Could not inspect database ' + saved.name));
+                        request.onsuccess = () => {
+                            const db = request.result;
+                            try {
+                                currentVersion = db.version;
+                                const schema = Array.from(db.objectStoreNames, name => {
+                                    const store = db.transaction(name, 'readonly').objectStore(name);
+                                    return {
+                                        name,
+                                        keyPath: store.keyPath,
+                                        autoIncrement: store.autoIncrement,
+                                        indexes: Array.from(store.indexNames, indexName => {
+                                            const index = store.index(indexName);
+                                            return { name: index.name, keyPath: index.keyPath, unique: index.unique, multiEntry: index.multiEntry };
+                                        })
+                                    };
+                                });
+                                db.close();
+                                resolve(schema);
+                            } catch (error) {
+                                db.close();
+                                reject(error);
+                            }
+                        };
+                    });
+                }
+                const needsUpgrade = !existing || saved.stores.some(meta => {
+                    const store = currentSchema.find(item => item.name === meta.name);
+                    if (!store || JSON.stringify(store.keyPath) !== JSON.stringify(meta.keyPath) || store.autoIncrement !== !!meta.autoIncrement) return true;
+                    return (meta.indexes || []).some(index => {
+                        const old = store.indexes.find(item => item.name === index.name);
+                        return !old || JSON.stringify(old.keyPath) !== JSON.stringify(index.keyPath) || old.unique !== !!index.unique || old.multiEntry !== !!index.multiEntry;
+                    });
+                }) || currentSchema.some(store => !saved.stores.some(meta => meta.name === store.name));
+                await new Promise((resolve, reject) => {
+                    let wasBlocked = false;
+                    const version = needsUpgrade ? Math.max(currentVersion + 1, Number(saved.version) || 1) : currentVersion;
+                    const request = version ? indexedDB.open(saved.name, version) : indexedDB.open(saved.name);
+                    request.onupgradeneeded = () => {
+                        const db = request.result;
+                        const keep = new Set(saved.stores.map(meta => meta.name));
+                        for (const oldName of Array.from(db.objectStoreNames)) {
+                            if (!keep.has(oldName)) db.deleteObjectStore(oldName);
+                        }
+                        for (const meta of saved.stores) {
+                            let store;
+                            if (db.objectStoreNames.contains(meta.name)) {
+                                store = request.transaction.objectStore(meta.name);
+                                const keyPathChanged = JSON.stringify(store.keyPath) !== JSON.stringify(meta.keyPath);
+                                const autoIncrementChanged = store.autoIncrement !== !!meta.autoIncrement;
+                                if (keyPathChanged || autoIncrementChanged) {
+                                    db.deleteObjectStore(meta.name);
+                                    store = null;
+                                }
+                            }
+                            if (!store) store = db.createObjectStore(meta.name, {
+                                keyPath: meta.keyPath == null ? null : meta.keyPath,
+                                autoIncrement: !!meta.autoIncrement
+                            });
+                            const wantedIndexes = meta.indexes || [];
+                            for (const oldName of Array.from(store.indexNames)) {
+                                const wanted = wantedIndexes.find(index => index.name === oldName);
+                                const old = wanted ? store.index(oldName) : null;
+                                if (!wanted || JSON.stringify(old.keyPath) !== JSON.stringify(wanted.keyPath) || old.unique !== !!wanted.unique || old.multiEntry !== !!wanted.multiEntry) store.deleteIndex(oldName);
+                            }
+                            for (const index of wantedIndexes) {
+                                if (!store.indexNames.contains(index.name)) store.createIndex(index.name, index.keyPath, { unique: !!index.unique, multiEntry: !!index.multiEntry });
+                            }
+                        }
+                    };
+                    request.onerror = () => reject(request.error || new Error('Could not open database ' + saved.name));
+                    request.onblocked = () => {
+                        wasBlocked = true;
+                        reject(new Error('Database ' + saved.name + ' is open in another tab. Close other game tabs and retry the import.'));
+                    };
+                    request.onsuccess = () => {
+                        const db = request.result;
+                        if (wasBlocked) { db.close(); return; }
+                        const names = Array.from(db.objectStoreNames);
+                        if (!names.length) {
+                            db.close();
+                            resolve();
+                            return;
+                        }
+                        try {
+                            const tx = db.transaction(names, 'readwrite');
+                            for (const name of names) tx.objectStore(name).clear();
+                            for (const meta of saved.stores) {
+                                if (!db.objectStoreNames.contains(meta.name)) continue;
+                                const store = tx.objectStore(meta.name);
+                                for (const entry of meta.entries || []) {
+                                    const refs = new Map();
+                                    const key = deserializeIDBValue(entry.key, refs);
+                                    const value = deserializeIDBValue(entry.value, refs);
+                                    if (store.keyPath === null) store.put(value, key);
+                                    else store.put(value);
+                                }
+                            }
+                            tx.oncomplete = () => { db.close(); resolve(); };
+                            tx.onerror = () => { const error = tx.error; db.close(); reject(error || new Error('Could not write database ' + saved.name)); };
+                            tx.onabort = () => { const error = tx.error; db.close(); reject(error || new Error('Database restore was aborted: ' + saved.name)); };
+                        } catch (error) {
+                            db.close();
+                            reject(error);
+                        }
+                    };
+                });
+            }
+        }
+        async function exportLibrary(){try{const siteStorage={};for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(!isPrivateStorageKey(key))siteStorage[key]=localStorage.getItem(key);}const full={format:'GameHubOfflineSave',version:5,theme:localStorage.getItem(THEME_KEY)||'cyan',title:localStorage.getItem(CUSTOM_TITLE_KEY)||'Game Hub',favicon:localStorage.getItem(CUSTOM_FAVICON_KEY)||'',games:gamesLibrary,siteStorage,indexedDatabases:await exportIndexedDatabases()};const blob=new Blob([JSON.stringify(full)],{type:'application/json'});downloadBlob(blob,'gamehub-master-save.json');}catch(e){alert('Could not export save: '+e.message);}}
         function downloadBlob(blob,name){const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
         function triggerImport(){document.getElementById('import-file').click();}
-        async function importLibrary(event){const file=event.target.files?.[0];if(!file)return;try{const parsed=JSON.parse(await file.text()),incoming=Array.isArray(parsed)?parsed:parsed.games;if(!Array.isArray(incoming)||!incoming.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&(typeof g.content==='string'||typeof g.file==='string')))throw new Error('Invalid GameHub save file');if(!confirm('Replace this library with the imported master save?'))return;gamesLibrary=incoming;await writeLibrary(gamesLibrary);localStorage.setItem('gamehub_super_liquid_seeded','1');if(parsed.theme)setTheme(parsed.theme);if(parsed.title){localStorage.setItem(CUSTOM_TITLE_KEY,parsed.title);document.title=parsed.title;}if(parsed.favicon)localStorage.setItem(CUSTOM_FAVICON_KEY,parsed.favicon);renderGameList();alert('Master save imported successfully.');}catch(e){alert('Import failed: '+e.message);}finally{event.target.value='';}}
+        async function importLibrary(event){const file=event.target.files?.[0];if(!file)return;try{const parsed=JSON.parse(await file.text()),incoming=Array.isArray(parsed)?parsed:parsed.games;if(!Array.isArray(incoming)||!incoming.every(g=>g&&typeof g.id==='string'&&typeof g.name==='string'&&(typeof g.content==='string'||typeof g.file==='string')))throw new Error('Invalid GameHub save file');if(!confirm('Replace this library and saved game data with the imported master save? Close other Game Hub/game tabs first if database schema changes are needed.'))return;stopCurrentGame();gamesLibrary=incoming;await writeLibrary(gamesLibrary);if(parsed.siteStorage&&typeof parsed.siteStorage==='object'&&!Array.isArray(parsed.siteStorage)){for(const key of Object.keys(localStorage))if(!isPrivateStorageKey(key))localStorage.removeItem(key);for(const [key,value] of Object.entries(parsed.siteStorage)){if(!isPrivateStorageKey(key)&&typeof value==='string')localStorage.setItem(key,value);}}await restoreIndexedDatabases(parsed.indexedDatabases);if(parsed.theme)setTheme(parsed.theme);if(typeof parsed.title==='string'){localStorage.setItem(CUSTOM_TITLE_KEY,parsed.title);document.title=parsed.title;}if(typeof parsed.favicon==='string'){if(parsed.favicon)localStorage.setItem(CUSTOM_FAVICON_KEY,parsed.favicon);else localStorage.removeItem(CUSTOM_FAVICON_KEY);}applyCustomization();renderGameList();renderSelection();alert('Master save imported successfully.');}catch(e){alert('Import failed: '+e.message);}finally{event.target.value='';}}
     </script>
 </body>
 </html>

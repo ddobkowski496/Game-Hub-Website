@@ -90,6 +90,7 @@
     <script>
         // Global Game State
         let cash = 0;
+        const SAVE_KEY = 'offline-capitalist-save-v1';
 
         // Data for iconic businesses matching the tier scaling mechanics
         const businesses = [
@@ -102,6 +103,7 @@
         ];
 
         function init() {
+            loadSave();
             const container = document.getElementById('business-container');
             businesses.forEach(biz => {
                 const card = document.createElement('div');
@@ -124,6 +126,40 @@
             });
             updateUI();
             setInterval(gameLoop, 50); // Frame cycle for fluid progress loading
+            setInterval(saveGame, 1000);
+        }
+
+        function loadSave() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+                if (!saved || saved.version !== 1 || !Number.isFinite(saved.cash) || !Array.isArray(saved.businesses)) return;
+                cash = Math.max(0, saved.cash);
+                saved.businesses.forEach((entry, index) => {
+                    const biz = businesses[index];
+                    if (!biz || !entry || entry.id !== biz.id) return;
+                    biz.cost = Number.isFinite(entry.cost) ? Math.max(biz.cost, entry.cost) : biz.cost;
+                    biz.count = Number.isInteger(entry.count) ? Math.max(0, entry.count) : biz.count;
+                    biz.hasManager = Boolean(entry.hasManager);
+                    // A partially completed run resumes from its saved progress.
+                    biz.progress = Number.isFinite(entry.progress) ? Math.min(biz.duration, Math.max(0, entry.progress)) : 0;
+                    biz.isRunning = Boolean(entry.isRunning && (biz.count > 0 || biz.hasManager));
+                });
+            } catch (error) {
+                console.warn('Could not restore Offline Capitalist save:', error);
+            }
+        }
+
+        function saveGame() {
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify({
+                    version: 1,
+                    cash,
+                    savedAt: Date.now(),
+                    businesses: businesses.map(({ id, cost, count, hasManager, progress, isRunning }) => ({ id, cost, count, hasManager, progress, isRunning }))
+                }));
+            } catch (error) {
+                console.warn('Could not save Offline Capitalist progress:', error);
+            }
         }
 
         function updateUI() {
@@ -159,6 +195,7 @@
                 biz.count++;
                 biz.cost = Math.round(biz.cost * 1.15); // Classic incremental scaling
                 updateUI();
+                saveGame();
             }
         }
 
@@ -168,6 +205,7 @@
                 cash -= biz.managerCost;
                 biz.hasManager = true;
                 updateUI();
+                saveGame();
             }
         }
 
@@ -189,6 +227,7 @@
                         biz.progress = 0;
                         document.getElementById(`progress-${biz.id}`).style.width = '0%';
                         updateUI();
+                        saveGame();
                     } else {
                         document.getElementById(`progress-${biz.id}`).style.width = percent + '%';
                     }
@@ -204,6 +243,7 @@
         }
 
         window.onload = init;
+        window.addEventListener('pagehide', saveGame);
     </script>
 </body>
 </html>
