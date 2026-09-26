@@ -10,3 +10,5 @@ celestite-game-hub.vercel.app
 tektite-game-hub.vercel.app
 
 game-hub-website-khaki.vercel.app
+
+And yes, you will need to copy and paste them into your browser.
