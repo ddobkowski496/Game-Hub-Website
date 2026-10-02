@@ -3,11 +3,7 @@ Option 1: Click the green button, download as zip, and open the game-hub.html fi
 
 Option 2: Go to any of these links:
 
-pyrite-game-hub.vercel.app
-
-celestite-game-hub.vercel.app
-
-tektite-game-hub.vercel.app
+game-g8way.pages.dev
 
 game-hub-website-khaki.vercel.app
 
